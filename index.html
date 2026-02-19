@@ -463,10 +463,13 @@ function waliduj() {
 }
 
 // ── budowanie docx ───────────────────────────────────────────────────────────
-const {
-  Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-  AlignmentType, BorderStyle, WidthType, ShadingType, LevelFormat
-} = docx;
+let Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+    AlignmentType, BorderStyle, WidthType, ShadingType, LevelFormat;
+
+function initDocx() {
+  ({ Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+     AlignmentType, BorderStyle, WidthType, ShadingType, LevelFormat } = docx);
+}
 
 function t(text, opts = {}) {
   return new TextRun({ text: String(text), font: 'Arial', size: 22, ...opts });
@@ -764,6 +767,7 @@ async function generuj() {
   };
 
   try {
+    initDocx();
     const doc = buildDoc(dane);
     const blob = await Packer.toBlob(doc);
     const url = URL.createObjectURL(blob);
