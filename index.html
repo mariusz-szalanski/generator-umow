@@ -487,10 +487,14 @@ function p(children, opts = {}) {
 }
 function pC(children, opts = {}) { return p(children, { alignment: AlignmentType.CENTER, ...opts }); }
 
-const noB = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
-const noBorders = { top: noB, bottom: noB, left: noB, right: noB };
-const thinB = { style: BorderStyle.SINGLE, size: 4, color: 'BBBBBB' };
-const thinBorders = { top: thinB, bottom: thinB, left: thinB, right: thinB };
+function initDocx() {
+  ({ Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+     AlignmentType, BorderStyle, WidthType, ShadingType, LevelFormat } = docx);
+  noB = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+  noBorders = { top: noB, bottom: noB, left: noB, right: noB };
+  thinB = { style: BorderStyle.SINGLE, size: 4, color: 'BBBBBB' };
+  thinBorders = { top: thinB, bottom: thinB, left: thinB, right: thinB };
+};
 
 function parTitle(nr, tytul) {
   return [
