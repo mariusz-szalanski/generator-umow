@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generator Umowy PZU — Szałański i Partnerzy</title>
+<script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --ink: #0f1117;
+    --paper: #f7f5f0;
+    --accent: #8b1a1a;
+    --accent-light: #c0392b;
+    --rule: #d4c9b8;
+    --field-bg: #ffffff;
+    --label: #5a5248;
+    --disabled: #c8c0b4;
+    --success: #1a6b3a;
+    --panel: #edeae3;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── nagłówek ── */
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 28px 48px;
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    border-bottom: 3px solid var(--accent);
+  }
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+  header span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    opacity: 0.5;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* ── layout ── */
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 32px 80px;
+  }
+
+  /* ── sekcja ── */
+  .section {
+    margin-bottom: 40px;
+  }
+  .section-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* ── grid pól ── */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; }
+  .grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .full { grid-column: 1 / -1; }
+
+  /* ── pole formularza ── */
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  label {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--label);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  label .req { color: var(--accent); margin-left: 2px; }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="date"],
+  input[type="number"],
+  textarea {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.92rem;
+    color: var(--ink);
+    background: var(--field-bg);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    width: 100%;
+  }
+  input:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(139,26,26,0.08);
+  }
+  textarea { resize: vertical; min-height: 64px; }
+
+  /* ── wybór trybu płatności ── */
+  .payment-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 2px solid var(--ink);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .payment-toggle input[type="radio"] { display: none; }
+  .payment-toggle label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 16px;
+    cursor: pointer;
+    background: var(--field-bg);
+    transition: background 0.15s, color 0.15s;
+    text-transform: none;
+    font-size: 0.88rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--label);
+    border: none;
+    gap: 6px;
+    user-select: none;
+  }
+  .payment-toggle label:first-of-type { border-right: 2px solid var(--ink); }
+  .payment-toggle label .ico { font-size: 1.6rem; }
+  .payment-toggle label .lbl {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .payment-toggle label .sub {
+    font-size: 0.72rem;
+    color: var(--label);
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+  .payment-toggle input:checked + label {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .payment-toggle input:checked + label .lbl,
+  .payment-toggle input:checked + label .sub { color: var(--paper); }
+
+  /* ── sekcja rat (warunkowa) ── */
+  #raty-section {
+    display: none;
+    margin-top: 0;
+    padding: 20px 24px;
+    background: #f0ede6;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 2px 2px 0;
+  }
+  #raty-section.visible { display: block; }
+
+  .rata-row {
+    display: grid;
+    grid-template-columns: 120px 1fr 1fr;
+    gap: 12px;
+    align-items: end;
+    margin-bottom: 12px;
+  }
+  .rata-row:last-child { margin-bottom: 0; }
+  .rata-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    padding-bottom: 10px;
+    color: var(--ink);
+  }
+
+  /* ── przycisk generuj ── */
+  .btn-generate {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 16px 36px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    margin-top: 8px;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-generate:hover { background: var(--accent-light); }
+  .btn-generate:active { transform: scale(0.98); }
+  .btn-generate svg { width: 20px; height: 20px; }
+
+  /* ── komunikat błędu ── */
+  #msg {
+    display: none;
+    padding: 12px 16px;
+    border-radius: 2px;
+    font-size: 0.85rem;
+    margin-top: 16px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  #msg.error { background: #fce8e8; color: #8b1a1a; border-left: 3px solid var(--accent); display: block; }
+  #msg.ok { background: #e8f5ee; color: var(--success); border-left: 3px solid var(--success); display: block; }
+
+  /* ── divider ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 32px 0;
+  }
+
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+    .grid.cols-3 { grid-template-columns: 1fr; }
+    .rata-row { grid-template-columns: 1fr; }
+    header { padding: 20px 20px; }
+    main { padding: 28px 16px 60px; }
+    .payment-toggle { grid-template-columns: 1fr; }
+    .payment-toggle label:first-of-type { border-right: none; border-bottom: 2px solid var(--ink); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Generator Umowy PZU</h1>
+  <span>Szałański i Partnerzy Kancelaria Restrukturyzacyjna</span>
+</header>
+
+<main>
+
+  <!-- TRYB PŁATNOŚCI -->
+  <div class="section">
+    <div class="section-title">Tryb płatności</div>
+    <div class="payment-toggle">
+      <input type="radio" name="platnosc" id="p-jednorazowa" value="jednorazowa" checked>
+      <label for="p-jednorazowa">
+        <span class="ico">⬜</span>
+        <span class="lbl">Płatność jednorazowa</span>
+        <span class="sub">7 dni od zawarcia umowy</span>
+      </label>
+      <input type="radio" name="platnosc" id="p-ratalna" value="ratalna">
+      <label for="p-ratalna">
+        <span class="ico">⬜</span>
+        <span class="lbl">Płatność ratalna</span>
+        <span class="sub">3 raty powiązane z etapami</span>
+      </label>
+    </div>
+
+    <!-- SEKCJA RAT (warunkowa) -->
+    <div id="raty-section">
+      <div class="section-title" style="margin-top:0">Harmonogram rat</div>
+      <div class="rata-row">
+        <div class="rata-label">Rata I</div>
+        <div class="field">
+          <label>Kwota netto (zł) <span class="req">*</span></label>
+          <input type="number" id="r1-kwota" placeholder="np. 10000">
+        </div>
+        <div class="field">
+          <label>Termin płatności <span class="req">*</span></label>
+          <input type="date" id="r1-termin">
+        </div>
+      </div>
+      <div class="rata-row">
+        <div class="rata-label">Rata II</div>
+        <div class="field">
+          <label>Kwota netto (zł) <span class="req">*</span></label>
+          <input type="number" id="r2-kwota" placeholder="np. 10000">
+        </div>
+        <div class="field">
+          <label>Termin płatności <span class="req">*</span></label>
+          <input type="date" id="r2-termin">
+        </div>
+      </div>
+      <div class="rata-row">
+        <div class="rata-label">Rata III</div>
+        <div class="field">
+          <label>Kwota netto (zł) <span class="req">*</span></label>
+          <input type="number" id="r3-kwota" placeholder="np. 10000">
+        </div>
+        <div class="field">
+          <label>Termin płatności <span class="req">*</span></label>
+          <input type="date" id="r3-termin">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- DANE KLIENTA -->
+  <div class="section">
+    <div class="section-title">Dane klienta (Zleceniodawcy)</div>
+    <div class="grid">
+      <div class="field">
+        <label>Imię i nazwisko <span class="req">*</span></label>
+        <input type="text" id="imie-nazwisko" placeholder="np. Jan Kowalski">
+      </div>
+      <div class="field">
+        <label>PESEL <span class="req">*</span></label>
+        <input type="text" id="pesel" placeholder="11 cyfr">
+      </div>
+      <div class="field full">
+        <label>Nazwa firmy (JDG) <span class="req">*</span></label>
+        <input type="text" id="nazwa-firmy" placeholder="np. Jan Kowalski Transport">
+      </div>
+      <div class="field">
+        <label>NIP <span class="req">*</span></label>
+        <input type="text" id="nip" placeholder="10 cyfr">
+      </div>
+      <div class="field">
+        <label>REGON <span class="req">*</span></label>
+        <input type="text" id="regon" placeholder="9 lub 14 cyfr">
+      </div>
+      <div class="field full">
+        <label>Adres siedziby <span class="req">*</span></label>
+        <input type="text" id="adres-siedziby" placeholder="np. ul. Przykładowa 1, 00-001 Warszawa">
+      </div>
+      <div class="field full">
+        <label>Adres korespondencyjny <span class="req">*</span></label>
+        <input type="text" id="adres-korespondencyjny" placeholder="jeśli inny niż siedziba">
+      </div>
+      <div class="field">
+        <label>Telefon <span class="req">*</span></label>
+        <input type="text" id="telefon" placeholder="+48 000 000 000">
+      </div>
+      <div class="field">
+        <label>E-mail <span class="req">*</span></label>
+        <input type="email" id="email" placeholder="klient@domena.pl">
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- PARAMETRY UMOWY -->
+  <div class="section">
+    <div class="section-title">Parametry umowy</div>
+    <div class="grid cols-3">
+      <div class="field">
+        <label>Data zawarcia <span class="req">*</span></label>
+        <input type="date" id="data-zawarcia">
+      </div>
+      <div class="field">
+        <label>Kwota wynagrodzenia netto (zł) <span class="req">*</span></label>
+        <input type="number" id="kwota" placeholder="np. 15000">
+      </div>
+      <div class="field">
+        <label>Miejscowość zawarcia</label>
+        <input type="text" id="miejscowosc" value="Białymstoku">
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- GENERUJ -->
+  <button class="btn-generate" onclick="generuj()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+    </svg>
+    Generuj umowę (.docx)
+  </button>
+  <div id="msg"></div>
+
+</main>
+
+<script>
+// ── przełączanie widoczności sekcji rat ──────────────────────────────────────
+document.querySelectorAll('input[name="platnosc"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    const raty = document.getElementById('raty-section');
+    raty.classList.toggle('visible', radio.value === 'ratalna' && radio.checked);
+  });
+});
+
+// ── ikony w toggle ───────────────────────────────────────────────────────────
+document.querySelectorAll('input[name="platnosc"]').forEach(radio => {
+  radio.addEventListener('change', updateIcons);
+});
+function updateIcons() {
+  document.querySelectorAll('.payment-toggle label .ico').forEach(ico => ico.textContent = '⬜');
+  const checked = document.querySelector('input[name="platnosc"]:checked');
+  if (checked) {
+    const lbl = document.querySelector(`label[for="${checked.id}"] .ico`);
+    if (lbl) lbl.textContent = '☑';
+  }
+}
+updateIcons();
+
+// ── pomocnicze formatowanie daty ─────────────────────────────────────────────
+function formatDate(val) {
+  if (!val) return '___________';
+  const d = new Date(val);
+  const day = d.getDate();
+  const months = ['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
+  return `${day} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+function formatDateShort(val) {
+  if (!val) return '___________';
+  const d = new Date(val);
+  return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+}
+function kwotaSlownie(n) {
+  // uproszczone — tylko liczba i waluta
+  return `${Number(n).toLocaleString('pl-PL')} złotych`;
+}
+
+// ── walidacja ────────────────────────────────────────────────────────────────
+function msg(text, type) {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = type;
+}
+
+function waliduj() {
+  const required = ['imie-nazwisko','pesel','nazwa-firmy','nip','regon',
+                    'adres-siedziby','adres-korespondencyjny','telefon','email',
+                    'data-zawarcia','kwota'];
+  for (const id of required) {
+    if (!document.getElementById(id).value.trim()) {
+      msg(`Pole wymagane: ${document.querySelector('label[for]') || id}`, 'error');
+      document.getElementById(id).focus();
+      return false;
+    }
+  }
+  const tryb = document.querySelector('input[name="platnosc"]:checked').value;
+  if (tryb === 'ratalna') {
+    for (const id of ['r1-kwota','r1-termin','r2-kwota','r2-termin','r3-kwota','r3-termin']) {
+      if (!document.getElementById(id).value.trim()) {
+        msg('Wypełnij wszystkie pola harmonogramu rat.', 'error');
+        document.getElementById(id).focus();
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+// ── budowanie docx ───────────────────────────────────────────────────────────
+let Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+    AlignmentType, BorderStyle, WidthType, ShadingType, LevelFormat;
+
+function initDocx() {
+  ({ Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+     AlignmentType, BorderStyle, WidthType, ShadingType, LevelFormat } = docx);
+  noB = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+  noBorders = { top: noB, bottom: noB, left: noB, right: noB };
+  thinB = { style: BorderStyle.SINGLE, size: 4, color: 'BBBBBB' };
+  thinBorders = { top: thinB, bottom: thinB, left: thinB, right: thinB };
+}
+
+function t(text, opts = {}) {
+  return new TextRun({ text: String(text), font: 'Arial', size: 22, ...opts });
+}
+function b(text) { return t(text, { bold: true }); }
+function red(text) { return t(text, { bold: true, color: 'C00000' }); }
+
+function p(children, opts = {}) {
+  return new Paragraph({
+    children: Array.isArray(children) ? children : [children],
+    spacing: { after: 100 },
+    alignment: AlignmentType.JUSTIFIED,
+    ...opts,
+  });
+}
+function pC(children, opts = {}) { return p(children, { alignment: AlignmentType.CENTER, ...opts }); }
+
+let noB, noBorders, thinB, thinBorders;
+
+function parTitle(nr, tytul) {
+  return [
+    pC([b(`§${nr}`)], { spacing: { after: 40 } }),
+    pC([b(tytul)], { spacing: { after: 120 } }),
+  ];
+}
+
+function buildDoc(dane) {
+  const {
+    imieNazwisko, pesel, nazwaFirmy, nip, regon,
+    adresSiedziby, adresKorespondencyjny, telefon, email,
+    dataZawarcia, kwota, miejscowosc, tryb,
+    r1kwota, r1termin, r2kwota, r2termin, r3kwota, r3termin
+  } = dane;
+
+  const dataStr = formatDate(dataZawarcia);
+  const kwotaStr = Number(kwota).toLocaleString('pl-PL');
+
+  // §8 zależny od trybu
+  const par8 = tryb === 'jednorazowa'
+    ? par8Jednorazowa(kwotaStr)
+    : par8Ratalna(kwotaStr, r1kwota, r1termin, r2kwota, r2termin, r3kwota, r3termin);
+
+  const children = [
+    // tytuł
+    pC([b('UMOWA O ŚWIADCZENIE USŁUG')], { spacing: { after: 60 } }),
+    pC([b('I SPRAWOWANIE NADZORU NAD PRZEBIEGIEM')], { spacing: { after: 60 } }),
+    pC([b('POSTĘPOWANIA O ZATWIERDZENIU UKŁADU')], { spacing: { after: 200 } }),
+
+    // strony
+    p([t(`zawarta w dniu ${dataStr} roku w ${miejscowosc} pomiędzy:`)], { spacing: { after: 120 } }),
+    p([t('Spółką Szałański i Partnerzy Kancelaria Restrukturyzacyjna Sp. z o. o. z siedzibą w Warszawie przy ul. Pięknej 24/26A, wpisaną do rejestru przedsiębiorców Krajowego Rejestru Sądowego pod numerem KRS 0000839157, reprezentowaną przez Prezesa zarządu Mariusza Szałańskiego, zwaną dalej „Doradcą restrukturyzacyjnym" lub „Doradcą",')]),
+    pC([b('a')]),
+    p([t(`${imieNazwisko} PESEL ${pesel}, prowadzącą/prowadzącym działalność gospodarczą: ${nazwaFirmy}, Numer NIP ${nip}, Numer REGON ${regon} z siedzibą: ${adresSiedziby}, o następującej treści:`)], { spacing: { after: 200 } }),
+
+    // §1
+    ...parTitle(1, 'Przedmiot umowy'),
+    p([t('1.\tPrzedmiotem niniejszej umowy jest świadczenie przez Zleceniobiorcę na rzecz Zleceniodawcy usług z zakresu doradztwa prawnego i finansowego w celu przygotowania niezbędnej do przeprowadzenia postępowania restrukturyzacyjnego dokumentacji pod nadzorem licencjonowanego Doradcy Restrukturyzacyjnego oraz sprawowanie nadzoru na przebiegiem postępowania o zatwierdzenie układu;')]),
+    p([t('2.\tZakres czynności świadczonych przez Zleceniobiorcę na rzecz Zleceniodawcy obejmuje:')]),
+    pC([b('ETAP I')], { spacing: { after: 40 } }),
+    pC([b('Kompleksowa analiza sytuacji ekonomicznej Zleceniodawcy')], { spacing: { after: 80 } }),
+    p([t('Zebranie materiału dowodowego, kompleksowa analiza i opracowanie projektu wariantów i perspektyw dalszej działalności Przedsiębiorcy, t.j. w szczególności:')]),
+    p([t('a)\tanaliza stanu faktycznego, w tym przyczyn problemów finansowych – konsultacje ze Zleceniodawcą, zarówno osobiste, jak i z wykorzystaniem metod komunikacji na odległość;')]),
+    p([t('b)\tanaliza dokumentów przekazanych przez Zleceniodawcę w oparciu o uprzednio dostarczony mu przez Zleceniobiorcę wykaz w tym m.in.: umów kredytowych wraz ze wszystkimi załącznikami i harmonogramami, operatów szacunkowych posiadanego majątku, ksiąg wieczystych itp.;')]),
+    p([t('c)\tanaliza zobowiązań operacyjnych i publiczno-prawnych;')]),
+    p([t('d)\tanaliza powiązań kapitałowych i osobowych;')]),
+    p([t('e)\tanaliza możliwości wprowadzenia wstępnych środków restrukturyzacyjnych wraz z analizą prawną;')]),
+    p([t('f)\tdoradztwo w wyborze odpowiedniego postępowania restrukturyzacyjnego')]),
+    pC([b('ETAP II')], { spacing: { before: 120, after: 40 } }),
+    pC([b('Konstrukcja właściwa wniosku wraz z załącznikami oraz obsługa Zleceniodawcy do czasu otwarcia postępowania układowego')], { spacing: { after: 80 } }),
+    p([t('a)\tanaliza możliwości dokonania zabezpieczeń majątkowych przedsiębiorcy;')]),
+    p([t('b)\twyznaczenie priorytetów zabezpieczeń przeciwegzekucyjnych;')]),
+    p([t('c)\tanaliza wyników finansowych Zleceniodawcy i stworzenie wstępnego modelu możliwości restrukturyzacyjnych;')]),
+    p([t('e)\tokreślenie punktów krytycznych działalności Zleceniodawcy;')]),
+    p([t('f)\topracowanie strategii planowanych działań restrukturyzacyjnych (naprawczych);')]),
+    p([t('i)\tprzygotowanie opisu majątku i jego perspektyw;')]),
+    p([t('j)\totwarcie Postępowania o Zatwierdzenie Układu')]),
+    p([t('3.\tStrony zgodnie postanawiają, iż zakres współpracy określony w §1 niniejszej umowy może ulec zmianie w zależności od potrzeb Zleceniodawcy, przy czym każdorazowa zmiana zakresu wymaga zachowania formy pisemnej oraz uprzedniej akceptacji każdej ze Stron niniejszej umowy.')]),
+    pC([b('ETAP III')], { spacing: { before: 120, after: 40 } }),
+    pC([b('Bieżąca obsługa w toku postępowania')], { spacing: { after: 80 } }),
+    p([t('a.\tudział i reprezentowanie Zleceniodawcy na spotkaniu z organem postępowania,')]),
+    p([t('b.\twspółpraca z organem postępowania w zakresie przygotowywania niezbędnych dokumentów na tym etapie tj. planu restrukturyzacyjnego, spisu wierzytelności, a także prowadzenia negocjacji z wierzycielami oraz czynności wynikających ze zdarzeń powstałych w toku postępowania w zakresie prowadzonego przedsiębiorstwa,')]),
+    p([t('c.\tkontakt z wierzycielami, w tym prowadzenie negocjacji z wierzycielami osobiście w siedzibie wierzycieli, jak i za pośrednictwem środków komunikacji na odległość,')]),
+    p([t('d.\tudział i reprezentowanie Zleceniodawcy na zgromadzeniu wierzycieli,')]),
+    p([t('e.\tudział i reprezentowanie Zleceniodawcy na rozprawie w przedmiocie zatwierdzenia warunków układu')]),
+    p([t('f.\tbieżąca obsługa prawno-finansowa w toku postępowania w tym przygotowywanie okresowych sprawozdań dla organu postępowania z załącznikami')]),
+    p([t('4.\tDoradca restrukturyzacyjny podejmuje się funkcji nadzorcy układu w zakresie art. 35 Ustawy Prawo restrukturyzacyjne, a po uprawomocnieniu się układu – funkcji nadzorcy wykonania układu – na podstawie niniejszej umowy.')]),
+
+    // §2
+    ...parTitle(2, 'Zasady współpracy'),
+    p([t('1.\tStrony umowy zobowiązują się do współpracy w ramach realizowanego zlecenia, opartej na wzajemnym zaufaniu;')]),
+    p([t('2.\tDoradca restrukturyzacyjny zobowiązuje się wykonać przedmiot niniejszej umowy z należytą starannością, zgodnie z obowiązującymi przepisami prawa;')]),
+    p([t('3.\tDoradca restrukturyzacyjny zapewnia ponadto, że w zakresie umowy posiada wiedzę, doświadczenie, oraz środki niezbędne do realizacji jej przedmiotu. Zakres zadań powierzony Doradcy restrukturyzacyjnemu przez Zamawiającego zostanie zrealizowany na profesjonalnym poziomie oraz standardzie, który odpowiada tego typu projektom;')]),
+    p([t('4.\tW sytuacji dopuszczenia się przez Zleceniobiorcę rażącego i zawinionego naruszenia warunków niniejszej umowy opisanych w paragrafach powyżej, Zleceniodawcy będzie przysługiwał proporcjonalny do stopnia zawinienia zwrot wynagrodzenia zapłaconego przez Zleceniobiorcę, po uprzednim pisemnym wezwaniu zleceniobiorcy do prawidłowego wykonania niniejszej umowy w terminie nie krótszym niż 21 dni. Przy czym wezwanie to musi zawierać precyzyjne wyszczególnienie naruszeń umowy.')]),
+    p([t('5.\tZleceniodawca, w ramach niniejszej umowy zobowiązuje się do:')]),
+    p([t('a)\tprzekazania Zleceniobiorcy kompletnej, rzetelnej i autentycznej (zgodnej z oryginałem) dokumentacji wymaganej przez Zleceniobiorcę, w terminie 5 dni roboczych liczonych od dnia, w którym Zleceniobiorca zawnioskował do Zleceniodawcy o ich dostarczenie – o ile Zleceniodawca nie poinformuje o konieczności wydłużenia tego terminu w formie pisemnej lub e-mail;')]),
+    p([t('b)\tbezzwłocznego (maksymalnie w terminie do 5 dni roboczych) uzupełnienia na każde żądanie Zleceniobiorcy dokumentacji zasadnej i niezbędnej do realizacji niniejszej umowy z zastrzeżeniem, iż jeżeli dostarczenie dokumentów wymaganych przez Zleceniobiorcę będzie uzależnione od podmiotów trzecich Zleceniodawca przekaże je Zleceniobiorcy w terminie do 3 dni od ich faktycznego otrzymania;')]),
+    p([t('6.\tZleceniodawca zobowiązuje się również do niezatajania żadnych istotnych informacji mogących mieć wpływ na prawidłową realizację zakresu zawartej umowy.')]),
+    p([t('7.\tZleceniodawca, poprzez złożenie podpisu pod niniejszą umową oświadcza, że: „przekazane Zleceniobiorcy dokumenty oraz informacje są rzetelne, autentyczne lub są kserokopiami dokumentów autentycznych i odzwierciedlają stan faktyczny i znany jest mu zakres odpowiedzialności karnej wynikającej w szczególności z art. 233, art. 297 § 1 i 2 i art. 270, art. 270a oraz art. 297 Kodeksu Karnego";')]),
+    p([t('8.\tZleceniodawca zobowiązuje się do bieżącego zapoznawania się z wiadomościami e-mail przychodzącymi od Zleceniobiorcy i do udzielenia każdorazowo odpowiedzi na powyższe w terminie nie dłuższym niż 3 dni.')]),
+    p([t('9.\tZleceniodawca udostępni Doradcy restrukturyzacyjnemu dane i dokumenty niezbędne do wykonania przedmiotu niniejszej umowy, a w szczególności Zleceniodawca przekaże aktualny na dzień zawarcia umowy spis wierzytelności, spis wierzytelności spornych oraz propozycji układowych, które są konieczne dla dokonania przez Doradcę restrukturyzacyjnego obwieszczenia o otwarciu postępowania o zatwierdzenie układu w rozumieniu art. 15 ust. 1 wskazanej ustawy.')]),
+    p([t('10.\tZleceniodawca zobowiązuje się do pokrycia z własnych środków koszty, w szczególności koszty opłaty od ewentualnego wniosku Doradcy restrukturyzacyjnego o zatwierdzenie układu, po uprzednim wezwaniu Zleceniodawcy przez Doradcę restrukturyzacyjnego z kontaktowego adresu e-mail i w terminie zakreślonym przez Doradcę restrukturyzacyjnego.')]),
+    p([t('11.\tZleceniodawca od dnia otwarcia Postępowania o Zawarcie Układu nie może wykonywać czynności przekraczających zwykły zarząd. Wykonanie czynności przekraczającej zwykły zarząd bez zgody Doradcy Restrukturyzacyjnego jest nieważne.')]),
+    p([b('12. Obowiązek informowania Zleceniobiorcy o otrzymanej korespondencji')]),
+    p([t('Zleceniodawca zobowiązuje się, w każdym przypadku otrzymania korespondencji dotyczącej sprawy objętej niniejszą umową, w szczególności korespondencji z sądów, w tym zawierającej braki formalne lub wymagającej ich uzupełnienia, niezwłocznie, jednak nie później niż w ciągu 2 (dwóch) dni od jej otrzymania:')]),
+    p([t('a)\tPoinformować o tym Zleceniobiorcę; oraz')]),
+    p([t('b)\tPrzekazać pełną treść pisma drogą elektroniczną na adres e-mail Zleceniobiorcy wskazany w umowie.')]),
+    p([t('Nieprzekazanie w terminie informacji oraz treści korespondencji skutkuje wyłączeniem odpowiedzialności Zleceniobiorcy za skutki wynikające z niedochowania terminów lub braków formalnych.')]),
+    p([t('13.\tStrony umowy postanawiają, iż Doradcy restrukturyzacyjnemu nie można postawić zarzutu braku należytej staranności przy realizacji prac, jeżeli te okoliczności wynikają z:')]),
+    p([t('a)\tdziałania siły wyższej, przez co strony rozumieją także obowiązujący stan epidemii lub zagrożenia epidemicznego,')]),
+    p([t('b)\tdziałania lub zaniechania sądu lub organów państwowych i samorządowych, polegających w szczególności na zmianie przepisów prawnych,')]),
+    p([t('c)\tbłędnego udzielenia lub nieudzielenia w terminie informacji, nieudostępnienia Doradcy restrukturyzacyjnemu przez Zleceniodawcę dokumentów istotnych z punktu widzenia realizacji przedmiotu umowy lub niepokrycia przez Zleceniodawcę kosztów niezależnych od Stron.')]),
+    p([t('Doradca restrukturyzacyjny może powierzyć wykonanie przedmiotu niniejszej umowy osobom trzecim bez zgody Zamawiającego. Doradca restrukturyzacyjny jest odpowiedzialny za działania i zaniechania tych osób oraz za działania i zaniechania własne. Powierzenie prac objętych niniejszą umową osobom trzecim nie spowoduje wzrostu ceny, o której mowa w §8 umowy.')]),
+    p([t('Doradca restrukturyzacyjny oświadcza, że zawarł obowiązkową umowę ubezpieczenia odpowiedzialności cywilnej za szkody wyrządzone również w związku z pełnieniem funkcji nadzorcy układu.')]),
+
+    // §3
+    ...parTitle(3, 'Zakres prac i obowiązki stron'),
+    p([t('1.\tStrony ustalają następujący zakres i harmonogram prac:')]),
+    p([t('a)\tPrzygotowanie: spisu wierzycieli, propozycji układowych, planu restrukturyzacyjnego wraz z prognozami możliwości finansowych,')]),
+    p([t('b)\tUstalenie dnia układowego,')]),
+    p([t('c)\tObwieszczenie o otwarciu postępowania o zatwierdzenie układu w Krajowym Rejestrze Zadłużonych,')]),
+    p([t('d)\tZawiadomienie Sądu właściwego do rozpoznania wniosku o zatwierdzenie układu o dokonaniu obwieszczenia o otwarciu postępowania,')]),
+    p([t('e)\tNegocjacje z wierzycielami, w tym możliwe spotkania z wierzycielami w ramach negocjacji,')]),
+    p([t('f)\tDystrybucja kart do głosowania,')]),
+    p([t('g)\tSporządzenia w imieniu Zleceniodawcy wniosku o zatwierdzenie warunków układu (w przypadku zawarcia układu przez Zgromadzenie wierzycieli),')]),
+    p([t('h)\tNadzór Doradcy restrukturyzacyjnego nad wykonaniem układu.')]),
+    p([t('2.\tStrony ustalają, iż Zleceniodawca przygotuje przy pomocy Doradcy następujące dokumenty:')]),
+    p([t('a)\tspis wierzycieli z wyliczeniem dyskonta w przypadkach z art. 81 PrRest. oraz z uwzględnieniem wierzytelności warunkowych,')]),
+    p([t('b)\tpropozycje układowe,')]),
+    p([t('c)\tplan restrukturyzacyjny wraz z prognozami możliwości finansowych,')]),
+    p([t('d)\tdokumenty wymienione w art. 220 pkt 6, 7, 11, 12, 13, 14, 17 PrRest. W przypadku przewidywanej pomocy publicznej – test prywatnego wierzyciela, oraz dokumenty, o których mowa w art. 214 PrRest.')]),
+    p([t('3.\tStrony ustalają, iż Doradca restrukturyzacyjny sporządzi następujące dokumenty i zapewni wsparcie w następujących obszarach:')]),
+    p([t('a)\tzawiadomienie Sądu właściwego do rozpoznania wniosku o zatwierdzenie układu o dokonaniu obwieszczenia,')]),
+    p([t('b)\tprzedstawienie rekomendacji dotyczących dnia układowego zgodnie z art. 211 PrRest,')]),
+    p([t('c)\tudzielanie informacji wierzycielom,')]),
+    p([t('d)\twsparcie w negocjacjach z wierzycielami,')]),
+    p([t('e)\topracowanie wzoru karty do głosowania dla każdego wierzyciela wraz z ich dystrybucją,')]),
+    p([t('f)\torganizacja zgromadzenia wierzycieli, w tym wyznaczenie terminu i miejsca, w którym odbędzie się zgromadzenie wierzycieli oraz przeprowadzenie głosowania na tym zgromadzeniu, przy czym głosowanie może zostać przeprowadzone przy użyciu elektronicznych środków komunikacji,')]),
+    p([t('g)\twniosek o zatwierdzenie warunków układu.')]),
+    p([t('4.\tPełnienie funkcji nadzorcy wykonania układu nastąpi po uprawomocnieniu się postanowienia Sądu o zatwierdzeniu układu.')]),
+
+    // §4–§7
+    ...parTitle(4, 'Czas trwania umowy'),
+    p([t('Umowa zostaje zawarta na czas wykonania usługi z zastrzeżeniami wynikającymi z niniejszej umowy.')]),
+    ...parTitle(5, 'Zobowiązanie do poufności'),
+    p([t('Strony umowy zobowiązują się, że wszelkie dane i informacje uzyskane w związku z wykonywaniem niniejszej umowy na temat stanu, organizacji i interesów drugiej strony nie zostaną ujawnione, udostępnione lub upublicznione ani w części, ani w całości bez pisemnej zgody drugiej strony, o ile nie wynika to z niniejszej umowy lub nie służy jej realizacji.')]),
+    ...parTitle(6, 'Przedstawiciele strony'),
+    p([t('Strony ustalają następujących reprezentantów przy realizacji niniejszej umowy:')]),
+    p([t(`Zleceniodawca: ${imieNazwisko}, ${telefon}, ${email}`)]),
+    p([t('Doradca restrukturyzacyjny: Mariusz Szałański – doradca restrukturyzacyjny, nr lic. 1306')]),
+    ...parTitle(7, 'Oświadczenia i pouczenia'),
+    p([t('1.\tZleceniodawca oświadcza, że udzieli Doradcy restrukturyzacyjnemu pełnych i zgodnych z prawdą informacji w celu wykorzystania w postępowaniu restrukturyzacyjnym oraz udostępni dokumenty dotyczące swojego majątku i zobowiązań;')]),
+    p([t('2.\tDoradca restrukturyzacyjny poucza Zleceniodawcę o rygorze odpowiedzialności karnej za dostarczanie nieprawdziwych informacji w celu wykorzystania w postępowaniu restrukturyzacyjnym oraz za zatajanie informacji mających istotne znaczenie dla przeprowadzenia postępowania restrukturyzacyjnego.')]),
+
+    // §8 (warunkowy)
+    ...par8,
+
+    // §9–§14
+    ...parTitle(9, 'Rozwiązanie umowy'),
+    p([t('1.\tUmowa ulega rozwiązaniu bez konieczności wypowiedzenia w przypadku nieprzyjęcia układu przez wierzycieli.')]),
+    p([t('2.\tUmowa może zostać wypowiedziana przez Zleceniobiorcę w trybie natychmiastowym w przypadku nieuiszczenia przez Zleceniodawcę wynagrodzenia, o którym mowa w §8 niniejszej umowy, bądź też niewykonania obowiązków wynikających z §2 ust. 5–10.')]),
+    ...parTitle(10, 'Rozstrzygnięcie sporów'),
+    p([t('Wszelkie spory związane z wykonaniem tej umowy, a nierozwiązane przez Strony na drodze polubownej, będą rozstrzygane przez Sąd właściwy dla siedziby Doradcy restrukturyzacyjnego.')]),
+    ...parTitle(11, 'Zmiany umowy'),
+    p([t('Strony dopuszczają możliwość dokonania zmian niniejszej umowy w całości lub w części. Zmiany umowy wymagają formy pisemnej (aneksu) – pod rygorem nieważności.')]),
+    ...parTitle(12, 'Doręczenia i dane kontaktowe'),
+    p([t('1.\tStrony zgodnie ustalają, iż wszelkiego rodzaju zawiadomienia przewidziane przepisami prawa zostaną doręczone drugiej stronie osobiście, za pomocą listu poleconego lub pocztą elektroniczną (e-mail);')]),
+    p([t('2.\tZleceniodawca zobowiązuje się do bieżącego zapoznawania się z wiadomościami e-mail przychodzącymi od Doradcy restrukturyzacyjnego i do udzielenia każdorazowo odpowiedzi na powyższe w terminie nie dłuższym niż 3 dni.')]),
+    p([t('3.\tZawiadomienia przeznaczone dla Zleceniodawcy będą doręczane na adres korespondencyjny:')]),
+    p([t(`${imieNazwisko}, ${adresKorespondencyjny}, e-mail: ${email}`)]),
+    p([t('4.\tZawiadomienia przeznaczone dla Doradcy restrukturyzacyjnego będą doręczane na adres korespondencyjny:')]),
+    p([t('SZAŁAŃSKI I PARTNERZY KANCELARIA RESTRUKTURYZACYJNA SP. Z O.O. ul. Pułaskiego 33, 15-337 Białystok, e-mail: biuro@krpsm.pl')]),
+    p([t('5.\tStrony niniejszej umowy zobowiązują się do niezwłocznego wzajemnego zawiadomienia o zmianie adresu do doręczeń.')]),
+    p([t('6.\tStrona, która nie zawiadomi o zmianie adresu do doręczeń, ponosi odpowiedzialność za szkody wynikłe na skutek niewykonania tego obowiązku.')]),
+    p([t('7.\tMożliwy jest również kontakt telefoniczny:')]),
+    p([t(`Numer telefonu Zleceniodawcy: ${imieNazwisko} – ${telefon}`)]),
+    p([t('Numer telefonu Doradcy restrukturyzacyjnego: +48 505 905 906')]),
+    ...parTitle(13, 'Klauzula salwatoryjna'),
+    p([t('W przypadku uznania jakiegokolwiek sformułowania lub postanowienia niniejszej umowy za niezgodne z prawem i uznania tego sformułowania lub postanowienia za nieważne, Strony zobowiązują się uzgodnić nowe sformułowanie lub postanowienie, którego znaczenie będzie najbardziej zbliżone do pierwotnej intencji stron.')]),
+    ...parTitle(14, 'Postanowienia końcowe'),
+    p([t('1.\tW sprawach nieuregulowanych postanowieniami niniejszej umowy mają zastosowanie przepisy Ustawy z 15.05.2015 r. Prawo restrukturyzacyjne oraz przepisy Kodeksu cywilnego;')]),
+    p([t('2.\tNiniejsza umowa sporządzona została w dwóch jednobrzmiących egzemplarzach, po jednym dla każdej ze Stron;')]),
+    p([t('3.\tKażda osoba fizyczna podpisująca niniejszą umowę w imieniu osoby prawnej oświadcza, że jest upoważniona do reprezentacji tej osoby prawnej i podpisanie przez nią niniejszej umowy rodzi określone skutki prawne;')]),
+    p([t('4.\tUmowa wchodzi w życie z dniem uznania rachunku bankowego Doradcy restrukturyzacyjnego kwotą wynagrodzenia określonego w §8 ust. 1.')]),
+
+    // podpisy
+    p([t('')], { spacing: { before: 500, after: 200 } }),
+    new Table({
+      width: { size: 9640, type: WidthType.DXA },
+      columnWidths: [4500, 640, 4500],
+      rows: [
+        new TableRow({ children: [
+          new TableCell({ borders: noBorders, children: [pC([t('…………………………………………………………', { size: 20 })])] }),
+          new TableCell({ borders: noBorders, children: [p([t('')])] }),
+          new TableCell({ borders: noBorders, children: [pC([t('…………………………………………………………', { size: 20 })])] }),
+        ]}),
+        new TableRow({ children: [
+          new TableCell({ borders: noBorders, children: [pC([t('Zleceniodawca', { size: 20 })])] }),
+          new TableCell({ borders: noBorders, children: [p([t('')])] }),
+          new TableCell({ borders: noBorders, children: [pC([t('Doradca restrukturyzacyjny', { size: 20 })])] }),
+        ]}),
+        new TableRow({ children: [
+          new TableCell({ borders: noBorders, children: [pC([t(imieNazwisko, { size: 20 })])] }),
+          new TableCell({ borders: noBorders, children: [p([t('')])] }),
+          new TableCell({ borders: noBorders, children: [pC([t('Mariusz Szałański', { size: 20 })])] }),
+        ]}),
+      ],
+    }),
+  ];
+
+  return new Document({
+    styles: { default: { document: { run: { font: 'Arial', size: 22 } } } },
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 11906, height: 16838 },
+          margin: { top: 1134, right: 1134, bottom: 1134, left: 1134 },
+        },
+      },
+      children,
+    }],
+  });
+}
+
+function par8Jednorazowa(kwotaStr) {
+  return [
+    ...parTitle(8, 'Wynagrodzenie'),
+    p([t(`1.\tStrony ustalają wynagrodzenie z tytułu realizacji niniejszej umowy na kwotę ${kwotaStr} złotych plus należny podatek VAT – płatne w terminie 7 dni od zawarcia niniejszej umowy.`)]),
+    p([t('2.\tKwota wynagrodzenia opisana w ust. 1 niniejszego paragrafu płatna będzie na rachunek bankowy wskazany przez Doradcę restrukturyzacyjnego, w tym wypadku na rachunek Spółki nr: 04 1050 1012 1000 0090 8091 5201;')]),
+    p([t('3.\tDodatkowo za pełnienie funkcji nadzorcy wykonania układu, w przypadku jego zatwierdzenia, kwotę 500 złotych netto powiększoną o należny podatek VAT miesięcznie, płatną do 30. każdego miesiąca, począwszy od dnia prawomocnego zatwierdzenia układu;')]),
+    p([t('4.\tZa każdy dzień opóźnienia w płatności, Zleceniodawca zobowiązuje się uiścić Doradcy restrukturyzacyjnemu odsetki ustawowe za opóźnienie;')]),
+    p([t('5.\tW przypadku prawomocnej odmowy zatwierdzenia układu lub umorzenia postępowania, wynagrodzenie opisane w §8 ust. 1 pozostaje niezmienne.')]),
+    p([t('6.\tBrak płatności w terminie określonym w §8 ust. 1 zwalnia Zleceniobiorcę z wykonania czynności, do których był zobowiązany treścią niniejszej umowy.')]),
+    p([t('7.\tKwoty wynagrodzenia ustalone w umowie wyczerpują roszczenia Doradcy restrukturyzacyjnego wobec Zleceniodawcy i obejmują wszelkie koszty związane z nadzorem nad postępowaniem, w tym wszelkie opłaty i koszty własne Doradcy restrukturyzacyjnego;')]),
+    p([t('8.\tWszelkie opłaty sądowe pokrywa Zleceniodawca.')]),
+    p([t('9.\tUmowa niniejsza wchodzi w życie po dokonaniu płatności przez Zleceniodawcę w zakresie opisanym w niniejszym paragrafie.')]),
+  ];
+}
+
+function par8Ratalna(kwotaStr, r1k, r1t, r2k, r2t, r3k, r3t) {
+  const f1 = formatDateShort(r1t);
+  const f2 = formatDateShort(r2t);
+  const f3 = formatDateShort(r3t);
+  const k1 = Number(r1k).toLocaleString('pl-PL');
+  const k2 = Number(r2k).toLocaleString('pl-PL');
+  const k3 = Number(r3k).toLocaleString('pl-PL');
+  return [
+    ...parTitle(8, 'Wynagrodzenie'),
+    p([t(`1.\tStrony ustalają wynagrodzenie z tytułu realizacji niniejszej umowy na kwotę ${kwotaStr} złotych plus należny podatek VAT, płatne w terminie 7 dni od zawarcia niniejszej umowy, z zastrzeżeniem §8 ust. 3.`)]),
+    p([t('2.\tJeżeli płatność wynagrodzenia określonego w ust. 1 powyżej nastąpi jednorazowo, wówczas Zleceniobiorca zobowiązany jest do wykonania wszystkich etapów umowy szczegółowo opisanych w niniejszej umowie, z zastrzeżeniem obowiązków Zleceniodawcy określonych niniejszą umową.')]),
+    p([t('3.\tJeżeli płatność kwoty określonej w ust. 1 nastąpi według harmonogramu:')]),
+    p([t(`a)\tWpłata I w kwocie ${k1} złotych plus należny podatek VAT, płatna w terminie do ${f1}. Płatność ta zobowiązuje Zleceniobiorcę do wykonania działań przewidzianych w §1 ust. 2 – ETAP I oraz ETAP II oraz §3 ust. 1 pkt b, c, d, ust. 3 pkt a, b, c;`)]),
+    p([t(`b)\tWpłata II w kwocie ${k2} złotych plus należny podatek VAT, płatna w terminie do ${f2}. Wpłata ta powoduje zobowiązanie Zleceniobiorcy do wykonania czynności szczegółowo określonych w ETAPIE III oraz §3 ust. 1 pkt a ppkt ii, iii; §3 ust. 2 pkt a, b, c, d;`)]),
+    p([t(`c)\tWpłata III w kwocie ${k3} złotych plus należny podatek VAT, płatna w terminie do ${f3}. Wpłata ta zobowiązuje Doradcę Restrukturyzacyjnego do wykonania czynności określonych w §3 ust. 1 pkt e, f, g;`)]),
+    p([t('d)\tW przypadku gdy suma wpłat I, II, III nie pokryła całości wynagrodzenia Zleceniobiorcy określonego w §8 ust. 1, ostatnia rata jest ratą wyrównawczą i stanowi różnicę pomiędzy wynagrodzeniem określonym w §8 ust. 1 a sumą dotychczas dokonanych wpłat; płatna jest w terminie do 3 miesięcy od wejścia w życie niniejszej umowy.')]),
+    p([t('4.\tKwota wynagrodzenia opisana w ust. 1 niniejszego paragrafu płatna będzie na rachunek bankowy wskazany przez Doradcę restrukturyzacyjnego, w tym wypadku na rachunek Spółki nr: 04 1050 1012 1000 0090 8091 5201;')]),
+    p([t('5.\tDodatkowo za pełnienie funkcji nadzorcy wykonania układu, w przypadku jego zatwierdzenia, kwotę 500 złotych netto powiększoną o należny podatek VAT miesięcznie, płatną do 30. każdego miesiąca, począwszy od dnia prawomocnego zatwierdzenia układu;')]),
+    p([t('6.\tZa każdy dzień opóźnienia w płatności, Zleceniodawca zobowiązuje się uiścić Doradcy restrukturyzacyjnemu odsetki ustawowe za opóźnienie;')]),
+    p([t('7.\tW przypadku prawomocnej odmowy zatwierdzenia układu lub umorzenia postępowania, wynagrodzenie opisane w §8 ust. 1 pozostaje niezmienne.')]),
+    p([t('8.\tBrak wpłat wg harmonogramu określonego w §8 ust. 3 zwalnia Zleceniobiorcę z wykonania czynności, do których był zobowiązany treścią niniejszej umowy.')]),
+    p([t('9.\tKwoty wynagrodzenia ustalone w umowie wyczerpują roszczenia Doradcy restrukturyzacyjnego wobec Zleceniodawcy i obejmują wszelkie koszty związane z nadzorem nad postępowaniem, w tym wszelkie opłaty i koszty własne Doradcy restrukturyzacyjnego;')]),
+    p([t('10.\tWszelkie opłaty sądowe pokrywa Zleceniodawca.')]),
+    p([t('11.\tUmowa niniejsza wchodzi w życie po dokonaniu płatności przez Zleceniodawcę w zakresie opisanym w niniejszym paragrafie.')]),
+  ];
+}
+
+// ── główna funkcja generowania ────────────────────────────────────────────────
+async function generuj() {
+  if (!waliduj()) return;
+
+  const tryb = document.querySelector('input[name="platnosc"]:checked').value;
+
+  const dane = {
+    imieNazwisko: document.getElementById('imie-nazwisko').value.trim(),
+    pesel: document.getElementById('pesel').value.trim(),
+    nazwaFirmy: document.getElementById('nazwa-firmy').value.trim(),
+    nip: document.getElementById('nip').value.trim(),
+    regon: document.getElementById('regon').value.trim(),
+    adresSiedziby: document.getElementById('adres-siedziby').value.trim(),
+    adresKorespondencyjny: document.getElementById('adres-korespondencyjny').value.trim(),
+    telefon: document.getElementById('telefon').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    dataZawarcia: document.getElementById('data-zawarcia').value,
+    kwota: document.getElementById('kwota').value.trim(),
+    miejscowosc: document.getElementById('miejscowosc').value.trim() || 'Białymstoku',
+    tryb,
+    r1kwota: document.getElementById('r1-kwota').value,
+    r1termin: document.getElementById('r1-termin').value,
+    r2kwota: document.getElementById('r2-kwota').value,
+    r2termin: document.getElementById('r2-termin').value,
+    r3kwota: document.getElementById('r3-kwota').value,
+    r3termin: document.getElementById('r3-termin').value,
+  };
+
+  try {
+    initDocx();
+    const doc = buildDoc(dane);
+    const blob = await Packer.toBlob(doc);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const nazwisko = dane.imieNazwisko.split(' ').pop();
+    const tryblabel = tryb === 'jednorazowa' ? 'JEDNORAZOWA' : 'RATALNA';
+    a.href = url;
+    a.download = `UMOWA_PZU_${nazwisko}_${tryblabel}.docx`;
+    a.click();
+    URL.revokeObjectURL(url);
+    msg('✓ Plik wygenerowany i pobrany.', 'ok');
+  } catch (e) {
+    msg('Błąd generowania: ' + e.message, 'error');
+    console.error(e);
+  }
+}
+</script>
+</body>
+</html>
